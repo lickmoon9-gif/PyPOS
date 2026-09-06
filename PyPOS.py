@@ -8,6 +8,9 @@ currency=""
 def load(filename):
     try:
         with open(filename, "r") as f:
+            item_codes = []
+            item_names = []
+            item_prices = []
             temp = f.read()
             temp = temp.replace("\n", " ")
             temp = temp.replace(":", " ")
@@ -86,7 +89,8 @@ def list():
     for i in range(len(item_codes)):
         print(f"Item Code: {item_codes[i]}, Item Name: {item_names[i]}, Price: {item_prices[i]:.2f}{currency}")
 
-def currency(curr):
+def set_currency(curr):
+    global currency
     currency = curr
     print(f"Currency set to {currency}.")
 
@@ -115,4 +119,4 @@ while True:
         list()
     elif "currency" in inpt:
         curr = inpt.split(" ")[1]
-        currency(curr)
+        set_currency(curr)
