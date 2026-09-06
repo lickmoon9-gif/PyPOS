@@ -1,8 +1,6 @@
-PyPOS V.1.1
-Committed on September 5th 2026
+PyPOS V.1.1 Patch 1
+Committed on September 6th 2026
 
 CHANGE LOG:
-  -added the currency function to change the currency to the one of choice.
-  -added the functionality to add multipliers to the ammount of products in the cashier function.
-  -added the function to cancel the transaction to the cashier function
-
+  -Fixed currency not saving properly
+  -Fixed previous loaded data not wiped when loading new data
