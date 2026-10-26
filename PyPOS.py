@@ -3,7 +3,15 @@ from datetime import datetime
 item_names=[]
 item_prices=[]
 item_codes=[]
+scanned_items = []
+scanned_prices = []
+total = 0
+money = 0
+change = 0
 currency=""
+configcommands=["Currency", "CashierModeOnLaunch", "DefaultDataFile", "AlwaysSaveTransactionLogs"]
+AlwaysSaveTransactionLogs = False
+configdatatype=["str", "bool", "str"]
 
 def load(filename):
     try:
@@ -28,10 +36,15 @@ def cashier():
     total = 0
     scanned_items = []
     scanned_prices = []
+    money = 0
+    change = 0
     user_input = ""
     while user_input != "continue":
-        user_input = input("Enter item codes or scan the bar code (or type 'continue' to finish, or *(number) to enter quantity): ")
-        if user_input in item_codes:
+        user_input = input("Enter item codes or scan the bar code (or type 'continue' to finish, *(number) to enter quantity, or exit to exit cashier mode): ")
+        if user_input == "exit":
+            print("Exiting cashier mode.")
+            return       
+        elif user_input in item_codes:
             index = item_codes.index(user_input)
             print(f"Item: {item_names[index]}, Price: {item_prices[index]:.2f}{currency}")
             total += item_prices[index]
@@ -55,31 +68,33 @@ def cashier():
         print(f"Scanned Item: {scanned_items[i]}, Price: {scanned_prices[i]:.2f}{currency}")
 
     print(f"Total Price: {total:.2f}{currency}")
-    money=input("Enter the amount of money given by the customer (or cancel to cancel the transaction): ")
+    money = input("Enter the amount of money given by the customer (or cancel to cancel the transaction): ")
     if money == "cancel":
         print("Transaction canceled.")
         return
     else:
         change = float(money) - total
         print(f"Change: {change:.2f}{currency}")
-        user_input = input("Save transaction logs? (y/n): ")
-        if user_input.lower() == "y":
-            try:
-                with open("transaction_logs.txt", "a") as log_file:
-                    log_file.write(f"{datetime.now()}: Scanned Items: {scanned_items}, Total Price: {total:.2f}{currency}, Money Given: {money}, Change: {change:.2f}{currency}\n")
-                    log_file.close()
-                    print("Transaction logs saved.")
-            except FileNotFoundError:
-                user_input = input("Transaction log file not found. Create a new one? (y/n): ")
-                if user_input.lower() == "y":
-                    with open("transaction_logs.txt", "w") as log_file:
-                        log_file.write(f"{datetime.now()}: Scanned Items: {scanned_items}, Total Price: {total:.2f}{currency}, Money Given: {money}{currency}, Change: {change:.2f}{currency}\n")
-                        print("Transaction logs saved.")
-    user_input = input("Continue in cashier mode? (y/n): ")
-    if user_input.lower() == "y":
-        cashier()
-    else:
-        print("Exiting cashier mode.")
+        if AlwaysSaveTransactionLogs:
+            save_transaction_log()
+        else:
+            user_input = input("Save transaction logs? (y/n): ")
+            if user_input.lower() == "y":
+                save_transaction_log()
+        
+    cashier()
+
+def save_transaction_log():
+    timestamp = datetime.now().strftime("%d-%m-%Y_%H:%M:%S")
+    filename = f"transaction_log_{timestamp}.txt"
+    with open(filename, "w") as f:
+        f.write("Transaction Log\n")
+        f.write(f"Timestamp: {timestamp}\n")
+        f.write(f"Scanned Items: {scanned_items}\n")
+        f.write(f"Total Price: {total:.2f}{currency}\n")
+        f.write(f"Money Given: {money}{currency}\n")
+        f.write(f"Change: {change:.2f}{currency}\n")
+        print(f"Transaction log saved to {filename}.")
 
 def list():
     print("Listing all items:")
@@ -87,11 +102,10 @@ def list():
         print(f"Item Code: {item_codes[i]}, Item Name: {item_names[i]}, Price: {item_prices[i]:.2f}{currency}")
 
 def currency(curr):
+    global currency
     currency = curr
     print(f"Currency set to {currency}.")
-
-
-
+    
 print("░       ░░░  ░░░░  ░░       ░░░░      ░░░░      ░░")
 print("▒  ▒▒▒▒  ▒▒▒  ▒▒  ▒▒▒  ▒▒▒▒  ▒▒  ▒▒▒▒  ▒▒  ▒▒▒▒▒▒▒")
 print("▓       ▓▓▓▓▓    ▓▓▓▓       ▓▓▓  ▓▓▓▓  ▓▓▓      ▓▓")
@@ -100,6 +114,28 @@ print("█  ███████████  █████  █████�
 print("")
 print("Welcome to PyPOS!")
 
+try:
+    with open("config.txt", "r") as f:
+        config = f.read()
+        config = config.replace("\n", " ")
+        config = config.replace("=", " ")
+        data = config.split()
+        for i in range(0, len(data), 2):
+            if data[i] in configcommands:
+                if data[i] == str(configcommands[0]):
+                    currency = data[i + 1]
+                elif data[i] == str(configcommands[1]):
+                    if data[i + 1].lower() == "true":
+                        cashier()
+                elif data[i] == str(configcommands[2]):
+                    load(data[i + 1])
+                elif data[i] == str(configcommands[3]):
+                    if data[i + 1].lower() == "true":
+                        AlwaysSaveTransactionLogs = True
+            else:
+                continue
+except FileNotFoundError:
+    print("Config file not found. Please create a config.txt file with the necessary settings.")
 
 while True:
     inpt = input(">>> ")
