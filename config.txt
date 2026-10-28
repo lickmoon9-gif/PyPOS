@@ -5,6 +5,7 @@ Currency=
 CashierModeOnLaunch=false
 DefaultDataFile=
 AlwaysSaveTransactionLogs=false
+TransactionLogFileFormat=txt
 
 PrinterType=
 PrinterVendorID=
